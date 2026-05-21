@@ -66,6 +66,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload report artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cost-janitor-report
@@ -98,6 +99,8 @@ jobs:
           total=$(jq '.summary.total_orphans' janitor/report.json)
           echo "Total orphans: $total"
           if [ "$total" -gt 0 ]; then
+            echo "::warning::Cost Janitor found $total orphaned resource(s)"
             echo "Orphans found — failing CI"
             exit 1
           fi
+        continue-on-error: false
