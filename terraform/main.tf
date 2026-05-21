@@ -1,9 +1,9 @@
 module "network" {
   source = "./modules/network"
 
-  vpc_cidr             = "10.0.0.0/16"
-  public_subnet_1_cidr = "10.0.1.0/24"
-  public_subnet_2_cidr = "10.0.2.0/24"
+  vpc_cidr = "10.20.0.0/16"
+  public_subnet_1_cidr = "10.20.1.0/24"
+  public_subnet_2_cidr = "10.20.2.0/24"
 
   common_tags = local.common_tags
 }
@@ -33,6 +33,20 @@ resource "aws_security_group" "ec2_sg" {
       Name = "ec2-sg"
     }
   )
+  ingress {
+        description = "HTTP"
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 resource "aws_instance" "running_instance" {
   ami                    = "ami-12345678"
@@ -80,6 +94,13 @@ resource "aws_s3_bucket" "logs_bucket" {
       Name = "logs-bucket"
     }
   )
+}
+resource "aws_s3_bucket_versioning" "logs_versioning" {
+  bucket = aws_s3_bucket.logs_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
   count  = var.enable_s3_lifecycle ? 1 : 0

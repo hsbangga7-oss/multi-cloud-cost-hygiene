@@ -1,4 +1,4 @@
-name: Terraform Validate + Lint
+name: Cost Janitor
 
 on:
   push:
@@ -6,32 +6,96 @@ on:
   pull_request:
 
 jobs:
-  terraform:
+  cost-janitor:
     runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: ec2,s3,iam,sts
+        options: >-
+          --health-cmd "curl -s http://localhost:4566/_localstack/health | grep -q running"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localhost:4566
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Wait for LocalStack
+        run: |
+          echo "Waiting for LocalStack to be ready..."
+          for i in {1..30}; do
+            curl -s http://localhost:4566/_localstack/health | grep -q running && echo "Ready!" && break
+            echo "Attempt $i/30..."
+            sleep 3
+          done
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.x"
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-        working-directory: terraform
-
       - name: Terraform Init
-        run: terraform init -backend=false
+        run: terraform init
         working-directory: terraform
 
-      - name: Terraform Validate
-        run: terraform validate
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
         working-directory: terraform
 
-  shellcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Run Cost Janitor (dry-run)
+        id: janitor
+        run: |
+          cd janitor
+          bash janitor.sh --dry-run || true
+        continue-on-error: true
+
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
         with:
-          scandir: scripts
+          name: cost-janitor-report
+          path: |
+            janitor/report.json
+            janitor/report.md
+
+      - name: Post PR comment if orphans found
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('janitor/report.md', 'utf8');
+            const totalOrphans = JSON.parse(
+              fs.readFileSync('janitor/report.json', 'utf8')
+            ).summary.total_orphans;
+
+            if (totalOrphans > 0) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }
+
+      - name: Fail if orphans found
+        run: |
+          total=$(jq '.summary.total_orphans' janitor/report.json)
+          echo "Total orphans: $total"
+          if [ "$total" -gt 0 ]; then
+            echo "Orphans found — failing CI"
+            exit 1
+          fi

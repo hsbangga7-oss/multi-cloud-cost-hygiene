@@ -3,8 +3,10 @@
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
 *.backup
 terraform.tfvars
 
 # OS
 .DS_Store
+Thumbs.db

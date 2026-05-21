@@ -1,0 +1,39 @@
+{
+  "scan_timestamp": "2026-05-21T11:59:08Z",
+  "account_id": "000000000000",
+  "region": "us-east-1",
+  "summary": {
+    "total_orphans": 2,
+    "estimated_monthly_waste_usd": 3.65
+  },
+  "findings": [
+    {
+      "resource_id": "127.17.165.82",
+      "resource_type": "elastic_ip",
+      "reason": "not_associated",
+      "age_days": 0,
+      "estimated_monthly_cost_usd": 3.65,
+      "tags": {
+        "Project": "cost-hygiene",
+        "Environment": "dev",
+        "Owner": null
+      },
+      "suggested_action": "release",
+      "safe_to_auto_delete": true
+    },
+    {
+      "resource_id": "i-be9f310d66bfb6398",
+      "resource_type": "ec2_instance",
+      "reason": "missing_tags:Project,Owner,ManagedBy",
+      "age_days": 0,
+      "estimated_monthly_cost_usd": 0,
+      "tags": {
+        "Project": null,
+        "Environment": "dev",
+        "Owner": null
+      },
+      "suggested_action": "tag_or_review",
+      "safe_to_auto_delete": false
+    }
+  ]
+}
