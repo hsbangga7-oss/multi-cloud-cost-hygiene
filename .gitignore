@@ -2,7 +2,8 @@
 .terraform/
 .terraform.lock.hcl
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
+*.backup
 terraform.tfvars
 
 # OS
