@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=constants.sh
+source "$SCRIPT_DIR/constants.sh"
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-EBS_COST_PER_GB_MONTH=0.08
-EIP_COST_PER_HOUR=0.005
-EIP_COST_PER_MONTH=$(awk "BEGIN {printf \"%.2f\", $EIP_COST_PER_HOUR * 730}")
 STOPPED_EC2_THRESHOLD_DAYS="${STOPPED_DAYS:-14}"
 
 # ── Config ────────────────────────────────────────────────────────────────────
