@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a cost hygiene automation system for a fictional e-commerce client (NimbusKart) whose AWS bill grew from ~$400/month to ~$2,100/month due to orphaned resources. It provisions a baseline AWS infrastructure using Terraform against LocalStack, runs a Bash-based Cost Janitor that detects wasteful resources, and wires everything into a GitHub Actions CI/CD pipeline that enforces cost hygiene on every pull request.
+This project implements a cost hygiene automation system for a fictional e-commerce client (NimbusKart) whose AWS bill grew from ~$400/month to ~$2,100/month due to orphaned resources. It provisions a baseline AWS infrastructure using Terraform against LocalStack, runs a Bash-based Cost Janitor that detects wasteful resources, and wires everything into a GitHub Actions CI/CD pipeline that enforces cost hygiene on every pull request.The stack uses Terraform, Bash, AWS CLI, jq, LocalStack, and GitHub Actions — no real cloud credentials or spending required.
 
 ## How to run locally
 
@@ -10,7 +10,7 @@ This project implements a cost hygiene automation system for a fictional e-comme
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/multi-cloud-cost-hygiene.git
+git clone https://github.com/hsbangga7-oss/multi-cloud-cost-hygiene.git
 cd multi-cloud-cost-hygiene
 
 # 2. Start LocalStack
@@ -29,14 +29,15 @@ terraform apply -auto-approve
 cd ..
 
 # 5. Run Cost Janitor (dry-run — safe, no deletions)
-bash janitor/janitor.sh --dry-run
+cd janitor
+bash janitor.sh --dry-run
 
-# 6. Run Cost Janitor (delete mode — removes orphans)
-bash janitor/janitor.sh --delete
+# 6. Run Cost Janitor (delete mode — WARNING: deletes real resources if run against real AWS))
+bash janitor.sh --delete
 
 # 7. View the report
-cat janitor/report.json
-cat janitor/report.md
+cat report.json | jq .
+cat report.md
 ```
 
 ## Architecture
@@ -103,8 +104,8 @@ CI/CD Pipeline (GitHub Actions)
   ┌─────────────────────┐              ┌────────────────────────┐
   │  report.json        │              │  PR comment posted     │
   │  report.md          │              │  (if orphans found)    │
-  │  uploaded as        │              └────────────────────────┘
-  │  artifacts          │
+  │  (uploaded as        │              └────────────────────────┘
+  │  artifacts)          │
   └─────────────────────┘
 ```
 ## Decisions & deviations
@@ -114,7 +115,7 @@ CI/CD Pipeline (GitHub Actions)
 - **Bash chosen over Python** — assignment allows either; Bash was chosen to minimise dependencies (no pip, no virtualenv) and keep the CI container lightweight.
 - **Stopped EC2 age check returns 0 days on LocalStack** — LocalStack does not persist real launch timestamps; instances always appear as age 0. The logic is correct and would work on real AWS.
 - **EBS volume deleted in earlier testing** — the orphan EBS volume was accidentally deleted during development; re-created via `terraform apply`. CI provisions a fresh one on every run.
-- **`terraform.tfvars` excluded from repo** — contains LocalStack-specific overrides; excluded via `.gitignore` to avoid confusion when running against real AWS.
+- **SSH CIDR defaults to 0.0.0.0/0** — the spec explicitly sets this as the default but flags it as unsafe. I kept it as the default for LocalStack compatibility but added a `ssh_allowed_cidr` variable so any real deployment can restrict it to a specific IP range without touching the code.
 
 ## Trade-offs
 
