@@ -1,8 +1,8 @@
 # Submission — DevOps Engineer Assignment
 
 **Candidate name:** Harshpreet Singh Bangga
-**Email:** your@email.com
-**Date submitted:** May 2026
+**Email:** hsbangga7@email.com
+**Date submitted:** 25 May 2026
 **Hours spent (approximate):** 8
 
 ## Deliverables checklist
@@ -13,16 +13,16 @@
 - [x] Part B: GitHub Actions workflow runs green on a fresh PR
 - [x] Part B: --delete mode respects Protected=true tag
 - [x] Part C: DESIGN.md is present and within 2 pages
-- [ ] Walkthrough video link below is accessible (unlisted is fine)
+- [x] Walkthrough video link below is accessible (unlisted is fine)
 
 ## Walkthrough video
 
-Link (Loom / YouTube unlisted / Google Drive): _TODO after recording_
-Length: max 5 minutes
+Link (https://www.loom.com/share/fd13e9f621484269a8bc932b93de4aa3)
+Length: 13 Minutes
 
 ## Sample report
 
-Path to a sample report.json produced by your script: `samples/report.example.json`
+samples/
 
 ## Known limitations
 

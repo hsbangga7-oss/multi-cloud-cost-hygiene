@@ -36,8 +36,8 @@ bash janitor.sh --dry-run
 bash janitor.sh --delete
 
 # 7. View the report
-cat report.json | jq .
-cat report.md
+cat report.example.json | jq .
+cat report.example.md
 ```
 
 ## Architecture

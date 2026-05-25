@@ -1,6 +1,6 @@
 # Cost Janitor Report
 
-**Scan Time:** 2026-05-25T11:54:22Z
+**Scan Time:** 2026-05-25T12:20:16Z
 **Region:** us-east-1
 **Mode:** DRY-RUN
 
