@@ -1,21 +1,21 @@
 output "vpc_id" {
   description = "VPC ID"
-  value       = module.network.vpc_id
+  value       = aws_vpc.this.id
 }
 
 output "public_subnet_1_id" {
   description = "Public Subnet 1 ID"
-  value       = module.network.public_subnet_1_id
+  value       = aws_subnet.public_1.id
 }
 
 output "public_subnet_2_id" {
   description = "Public Subnet 2 ID"
-  value       = module.network.public_subnet_2_id
+  value       = aws_subnet.public_2.id
 }
 
 output "igw_id" {
   description = "Internet Gateway ID"
-  value       = module.network.igw_id
+  value       = aws_internet_gateway.this.id
 }
 
 output "running_instance_id" {

@@ -10,13 +10,14 @@ STOPPED_EC2_THRESHOLD_DAYS="${STOPPED_DAYS:-14}"
 # ── Config ────────────────────────────────────────────────────────────────────
 AWS_ENDPOINT="${AWS_ENDPOINT_URL:-http://localhost:4566}"
 REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-REPORT_FILE="${REPORT_FILE:-report.json}"
-SUMMARY_FILE="${SUMMARY_FILE:-report.md}"
+# Report paths
+REPORT_FILE="${REPORT_FILE:-$SCRIPT_DIR/../samples/report.example.json}"
+SUMMARY_FILE="${SUMMARY_FILE:-$SCRIPT_DIR/../samples/report.example.md}"
 DRY_RUN=true
 DELETE=false
 REQUIRED_TAGS=("Project" "Environment" "Owner" "ManagedBy")
 
-# ── Temp files for findings (fixes subshell scope bug) ────────────────────────
+#  Temp files for findings (fixes subshell scope bug)
 FINDINGS_FILE=$(mktemp)
 WASTE_FILE=$(mktemp)
 echo "[]"   > "$FINDINGS_FILE"
@@ -25,7 +26,7 @@ echo "0"    > "$WASTE_FILE"
 cleanup() { rm -f "$FINDINGS_FILE" "$WASTE_FILE"; }
 trap cleanup EXIT
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+#  Helpers
 log()  { echo "[INFO]  $*"; }
 warn() { echo "[WARN]  $*" >&2; }
 die()  { echo "[ERROR] $*" >&2; exit 1; }
@@ -66,7 +67,7 @@ missing_tags() {
   echo "${missing[*]:-}"
 }
 
-# ── Parse Args ────────────────────────────────────────────────────────────────
+# Parse Args 
 usage() {
   echo "Usage: $0 [--dry-run] [--delete]"
   echo "  --dry-run   Scan and report only, no deletions (default)"
@@ -83,7 +84,7 @@ for arg in "$@"; do
   esac
 done
 
-# ── Findings accumulator ──────────────────────────────────────────────────────
+#  Findings accumulator 
 add_finding() {
   local resource_id="$1"
   local resource_type="$2"
@@ -124,7 +125,7 @@ add_finding() {
   echo "$new_waste" > "$WASTE_FILE"
 }
 
-# ── Check 1: Unattached EBS Volumes ──────────────────────────────────────────
+# Check 1: Unattached EBS Volumes 
 scan_ebs() {
   log "Scanning for unattached EBS volumes..."
 
@@ -173,7 +174,7 @@ scan_ebs() {
   done
 }
 
-# ── Check 2: Stopped EC2 > N days ────────────────────────────────────────────
+# Check 2: Stopped EC2 > N days
 scan_stopped_ec2() {
   log "Scanning for EC2 instances stopped > ${STOPPED_EC2_THRESHOLD_DAYS} days..."
 
@@ -211,7 +212,7 @@ scan_stopped_ec2() {
   done
 }
 
-# ── Check 3: Unused Elastic IPs ───────────────────────────────────────────────
+# Check 3: Unused Elastic IPs 
 scan_elastic_ips() {
   log "Scanning for unused Elastic IPs..."
 
@@ -256,7 +257,7 @@ scan_elastic_ips() {
   done
 }
 
-# ── Check 4: Missing Required Tags ───────────────────────────────────────────
+# Check 4: Missing Required Tags 
 scan_missing_tags() {
   log "Scanning for resources with missing required tags..."
 
@@ -291,7 +292,7 @@ scan_missing_tags() {
   done
 }
 
-# ── Write report.json ─────────────────────────────────────────────────────────
+# Write report.json 
 write_report() {
   local total_orphans waste findings account_id
   findings=$(cat "$FINDINGS_FILE")
@@ -320,7 +321,7 @@ write_report() {
   log "Report written to $REPORT_FILE"
 }
 
-# ── Write report.md ───────────────────────────────────────────────────────────
+# Write report.md
 write_markdown() {
   local findings total_orphans waste
   findings=$(cat "$FINDINGS_FILE")
@@ -353,7 +354,7 @@ write_markdown() {
   log "Markdown summary written to $SUMMARY_FILE"
 }
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# Main 
 main() {
   log "========================================"
   log "  Cost Janitor"
